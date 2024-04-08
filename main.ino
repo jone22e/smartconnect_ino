@@ -147,6 +147,15 @@ static void my_callback(String last)
 }
 
 void getURL(String link, String params) {
+
+  if (Ethernet.begin(mac) != 0) {
+
+  } else {
+    if (client) {
+      client.stop();
+    }
+    internetStatus = 0;
+  }
   
   if (client.connect(server, 80)) {
     client.print("GET");
@@ -174,7 +183,9 @@ void getURL(String link, String params) {
     client.stop();
     my_callback(fullBody);
   } else {
-    client.stop();
+    if (client) {
+      client.stop();
+    }
     internetStatus = 0;
   }
 }
@@ -390,6 +401,8 @@ void loop()
     } else {
       reconnectInternet();
     }
+  } else {
+    reconnectInternet();
   }
   
     
