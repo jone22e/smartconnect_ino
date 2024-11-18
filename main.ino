@@ -251,6 +251,10 @@ void captura()
   {
     result = node.readInputRegisters(enderecoId, 1);
   }
+  else if (funcao == 5) 
+  {
+    result = node.writeSingleCoil(enderecoId, writeValue);
+  }
   else if (funcao == 6)
   {
     result = node.writeSingleRegister(enderecoId, writeValue);
