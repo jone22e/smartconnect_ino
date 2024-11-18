@@ -325,19 +325,14 @@ void captura()
 }
 
 void reconnectInternet() {
- // Tenta reconectar até 5 vezes com um delay de 1 segundo entre as tentativas.
-  for(int attempt = 0; attempt < 5; attempt++) {
-    if (Ethernet.begin(mac) != 0) {
-      internetStatus = 1;
-      return; // Sai da função se a reconexão for bem-sucedida.
-    } else {
-      delay(1000); // Espera um segundo antes de tentar novamente.
-    }
+  // Continua tentando até conseguir conectar
+  while (Ethernet.begin(mac) == 0) {
+    delay(1000); // Espera 1 segundo antes de tentar novamente
   }
 
-
-  internetStatus = 0; // Define o estado da internet como desconectado.
+  internetStatus = 1; // Internet conectada
 }
+
 
 void setup()
 {
@@ -385,29 +380,31 @@ void setup()
 
 void loop()
 {
-  //ether.packetLoop(ether.packetReceive());
+  // Verifica se o temporizador foi alcançado
   if (millis() > timer)
   {
     timer = millis() + intervalo;
 
-    if (internetStatus==1) {
-
-      if (systemstatus == 0) {
-        getConfiguracao();
-      } else if (systemstatus == 1) {
-        captura();
-      } else if (systemstatus == 2) {
-        sendReleyState();
-      } else {
-        //nothing   
-        reconnectInternet();    
+    // Verifica o estado da internet
+    if (internetStatus == 1) {
+      // Gerencia as operações de acordo com systemstatus
+      switch (systemstatus) {
+        case 0:
+          getConfiguracao();
+          break;
+        case 1:
+          captura();
+          break;
+        case 2:
+          sendReleyState();
+          break;
+        default:
+          reconnectInternet();
+          break;
       }
     } else {
+      // Internet desconectada, tenta reconectar
       reconnectInternet();
     }
-  } else {
-    reconnectInternet();
   }
-  
-    
 }
