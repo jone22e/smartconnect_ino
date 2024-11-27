@@ -1,7 +1,6 @@
 //PROJETO BASE
 #include <Arduino.h>
-#include <SPI.h>
-#include <Ethernet.h>
+#include <Ethernet2.h>
 #include <ModbusMaster.h>
 #include <EEPROM.h>
 #include <jsonlib.h>
@@ -140,7 +139,7 @@ static void my_callback(String last)
     estadoRele = jsonExtract(last, "w").toInt();
     writeStringToEEPROM(20, (String) estadoRele);
     digitalWrite(RELE, estadoRele);
-  } 
+  }
   else if (jsonExtract(last, "f") == "4")
   {
     systemstatus = 2;
@@ -149,22 +148,6 @@ static void my_callback(String last)
 
 void getURL(String link, String params) {
 
-  if (Ethernet.linkStatus() != 1) {
-    if (client) {
-      client.stop();
-    }
-    internetStatus = 0;
-  }
-
-  // if (Ethernet.begin(mac) != 0) {
-
-  // } else {
-  //   if (client) {
-  //     client.stop();
-  //   }
-  //   internetStatus = 0;
-  // }
-  
   if (client.connect(server, 80)) {
     client.print("GET");
     client.print(link);
@@ -173,7 +156,7 @@ void getURL(String link, String params) {
     client.println("Host: spa.brasiltec.ind.br");
     client.println("Connection: close");
     client.println();
-    
+
 
     bool nextIsBody = false;
     String fullHeader = "";
@@ -187,13 +170,11 @@ void getURL(String link, String params) {
           fullHeader += c;
         }
       }
-    }    
+    }
     client.stop();
     my_callback(fullBody);
   } else {
-    if (client) {
-      client.stop();
-    }
+    client.stop();
     internetStatus = 0;
   }
 }
@@ -258,10 +239,6 @@ void captura()
   else if (funcao == 4)
   {
     result = node.readInputRegisters(enderecoId, 1);
-  }
-  else if (funcao == 5) 
-  {
-    result = node.writeSingleCoil(enderecoId, writeValue);
   }
   else if (funcao == 6)
   {
@@ -333,27 +310,19 @@ void captura()
 }
 
 void reconnectInternet() {
-  // Tenta reconectar até 5 vezes com um delay de 1 segundo entre as tentativas.
-  for(int attempt = 0; attempt < 5; attempt++) {
-    Ethernet.begin(mac);
-    if (Ethernet.linkStatus() == 1) {
-      internetStatus = 1;
-      return; // Sai da função se a reconexão for bem-sucedida.
-    } else {
-      delay(1000); // Espera um segundo antes de tentar novamente.
-    }
+  if (Ethernet.begin(mac) == 0) {
+    //try again
+    internetStatus = 0;
+  } else {
+    internetStatus = 1;
   }
-  internetStatus = 0; // Define o estado da internet como desconectado.
 }
-
 
 void setup()
 {
-
-  internetStatus = 0;
 //  Serial.begin(9600);
 //  while (!Serial) {
-//    ; 
+//    ;
 //  }
 //  Serial.println ("****MAC start***");
   randomSeed(analogRead(A5));//从悬空的A5引脚获取随机状态，用于随机数
@@ -390,36 +359,31 @@ void setup()
   //ether.dhcpSetup();
   //ether.dnsLookup(website);
 
-  //reconnectInternet();
+  reconnectInternet();
 }
 
 void loop()
 {
-  // Verifica se o temporizador foi alcançado
+  //ether.packetLoop(ether.packetReceive());
   if (millis() > timer)
   {
     timer = millis() + intervalo;
 
-    // Verifica o estado da internet
-    if (internetStatus == 1) {
-      // Gerencia as operações de acordo com systemstatus
-      switch (systemstatus) {
-        case 0:
-          getConfiguracao();
-          break;
-        case 1:
-          captura();
-          break;
-        case 2:
-          sendReleyState();
-          break;
-        default:
-          reconnectInternet();
-          break;
+    if (internetStatus==1) {
+
+      if (systemstatus == 0) {
+        getConfiguracao();
+      } else if (systemstatus == 1) {
+        captura();
+      } else if (systemstatus == 2) {
+        sendReleyState();
+      } else {
+        //nothing
       }
     } else {
-      // Internet desconectada, tenta reconectar
       reconnectInternet();
     }
   }
+
+
 }
