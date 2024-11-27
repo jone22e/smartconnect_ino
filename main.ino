@@ -148,14 +148,14 @@ static void my_callback(String last)
 
 void getURL(String link, String params) {
 
-  if (Ethernet.begin(mac) != 0) {
+  // if (Ethernet.begin(mac) != 0) {
 
-  } else {
-    if (client) {
-      client.stop();
-    }
-    internetStatus = 0;
-  }
+  // } else {
+  //   if (client) {
+  //     client.stop();
+  //   }
+  //   internetStatus = 0;
+  // }
   
   if (client.connect(server, 80)) {
     client.print("GET");
@@ -325,17 +325,23 @@ void captura()
 }
 
 void reconnectInternet() {
-  // Continua tentando até conseguir conectar
-  while (Ethernet.begin(mac) == 0) {
-    delay(1000); // Espera 1 segundo antes de tentar novamente
+  // Tenta reconectar até 5 vezes com um delay de 1 segundo entre as tentativas.
+  for(int attempt = 0; attempt < 5; attempt++) {
+    if (Ethernet.begin(mac) != 0) {
+      internetStatus = 1;
+      return; // Sai da função se a reconexão for bem-sucedida.
+    } else {
+      delay(1000); // Espera um segundo antes de tentar novamente.
+    }
   }
-
-  internetStatus = 1; // Internet conectada
+  internetStatus = 0; // Define o estado da internet como desconectado.
 }
 
 
 void setup()
 {
+
+  internetStatus = 0;
 //  Serial.begin(9600);
 //  while (!Serial) {
 //    ; 
@@ -375,7 +381,7 @@ void setup()
   //ether.dhcpSetup();
   //ether.dnsLookup(website);
 
-  reconnectInternet();
+  //reconnectInternet();
 }
 
 void loop()
