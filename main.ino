@@ -336,7 +336,7 @@ void reconnectInternet() {
   // Tenta reconectar até 5 vezes com um delay de 1 segundo entre as tentativas.
   for(int attempt = 0; attempt < 5; attempt++) {
     Ethernet.begin(mac);
-    if (Ethernet.linkStatus() == 1) {
+    if (Ethernet.linkStatus() == LinkON) {
       internetStatus = 1;
       return; // Sai da função se a reconexão for bem-sucedida.
     } else {
