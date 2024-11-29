@@ -211,7 +211,15 @@ void sendData(const char *msg, uint16_t valor)
 void getConfiguracao()
 {
   char prefix[100];
-  snprintf(prefix, 100, "?id=%d", deviceId);
+
+  char mymac[20];
+
+  snprintf(mymac, sizeof(mymac), "%02X:%02X:%02X:%02X:%02X:%02X",
+             mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+  snprintf(prefix, sizeof(prefix), "?id=%d&mac=%s", deviceId, mymac);
+
+  //snprintf(prefix, 100, "?id=%d", deviceId);
   //ether.browseUrl(PSTR(" /c.php"), prefix, website, my_callback);
   //delay(100);
   getURL(" /c.php", prefix);
