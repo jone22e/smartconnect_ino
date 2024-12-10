@@ -14,13 +14,13 @@ ModbusMaster node;
 static uint32_t timer;
 char server[] = "spa.brasiltec.ind.br";
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-static int deviceId;
+static unsigned long deviceId;
 static uint32_t systemstatus = 0;
 static int velocidadePorta = 9600;
 static int tipodedados = SERIAL_8N1;
 static int funcao = 0;
 static int slaveId = 0;
-static int tagId = 0;
+static unsigned long tagId = 0;
 static int enderecoId = 0;
 static uint32_t writeValue = 0;
 static int intervalo = 5000;
@@ -56,7 +56,7 @@ String readStringFromEEPROM(int addrOffset)
 
 void configurar()
 {
-  deviceId = readStringFromEEPROM(0).toInt();
+  deviceId = readStringFromEEPROM(0).toLong();
   intervalo = readStringFromEEPROM(15).toInt();
   if (intervalo<500) {
     intervalo = 5000;
@@ -117,7 +117,7 @@ static void my_callback(String last)
     velocidadePorta = jsonExtract(last, "v").toInt();
     tipodedados = jsonExtract(last, "d").toInt();
     slaveId = jsonExtract(last, "e").toInt();
-    tagId = jsonExtract(last, "t").toInt();
+    tagId = jsonExtract(last, "t").toLong();
     enderecoId = jsonExtract(last, "g").toInt();
     funcao = jsonExtract(last, "x").toInt();
     writeValue = jsonExtract(last, "w").toInt();
