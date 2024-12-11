@@ -56,7 +56,9 @@ String readStringFromEEPROM(int addrOffset)
 
 void configurar()
 {
-  deviceId = readStringFromEEPROM(0).toLong();
+  //deviceId = readStringFromEEPROM(0).toLong();
+  deviceId = atol(readStringFromEEPROM(0).c_str());
+
   intervalo = readStringFromEEPROM(15).toInt();
   if (intervalo<500) {
     intervalo = 5000;
@@ -117,7 +119,7 @@ static void my_callback(String last)
     velocidadePorta = jsonExtract(last, "v").toInt();
     tipodedados = jsonExtract(last, "d").toInt();
     slaveId = jsonExtract(last, "e").toInt();
-    tagId = jsonExtract(last, "t").toLong();
+    tagId = atol(jsonExtract(last, "t").c_str());
     enderecoId = jsonExtract(last, "g").toInt();
     funcao = jsonExtract(last, "x").toInt();
     writeValue = jsonExtract(last, "w").toInt();
@@ -201,7 +203,7 @@ void getURL(String link, String params) {
 void sendData(const char *msg, uint16_t valor)
 {
   char prefix[100];
-  snprintf(prefix, 100, "?var=%s&var2=%03d&id=%d", msg, valor, tagId);
+  snprintf(prefix, 100, "?var=%s&var2=%03d&id=%ld", msg, valor, tagId);
   //ether.browseUrl(PSTR("/s.php"), prefix, website, my_callback);
   //delay(100);
   getURL(" /s.php", prefix);
@@ -217,7 +219,7 @@ void getConfiguracao()
   snprintf(mymac, sizeof(mymac), "%02X:%02X:%02X:%02X:%02X:%02X",
              mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
-  snprintf(prefix, sizeof(prefix), "?id=%d&mac=%s", deviceId, mymac);
+  snprintf(prefix, sizeof(prefix), "?id=%ld&mac=%s", deviceId, mymac);
 
   //snprintf(prefix, 100, "?id=%d", deviceId);
   //ether.browseUrl(PSTR(" /c.php"), prefix, website, my_callback);
