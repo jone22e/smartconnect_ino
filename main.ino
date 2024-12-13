@@ -23,6 +23,7 @@ static int slaveId = 0;
 static unsigned long tagId = 0;
 static int enderecoId = 0;
 static uint32_t writeValue = 0;
+static int tamanho = 1;
 static int intervalo = 5000;
 static int estadoRele = 0;
 static int internetStatus = 0;
@@ -123,6 +124,7 @@ static void my_callback(String last)
     enderecoId = jsonExtract(last, "g").toInt();
     funcao = jsonExtract(last, "x").toInt();
     writeValue = jsonExtract(last, "w").toInt();
+    tamanho = jsonExtract(last, "s").toInt();
     systemstatus = 1;
   }
   else if (jsonExtract(last, "f") == "2")
@@ -200,15 +202,16 @@ void getURL(String link, String params) {
   }
 }
 
-void sendData(const char *msg, uint16_t valor)
+void sendData(const char *msg, long valor)
 {
-  char prefix[100];
-  snprintf(prefix, 100, "?var=%s&var2=%03d&id=%ld", msg, valor, tagId);
+  char prefix[200];
+  snprintf(prefix, 200, "?var=%s&var2=%ld&id=%ld&tam=%d", msg, valor, tagId, tamanho);
   //ether.browseUrl(PSTR("/s.php"), prefix, website, my_callback);
   //delay(100);
   getURL(" /s.php", prefix);
   delay(100);
 }
+
 
 void getConfiguracao()
 {
@@ -231,7 +234,7 @@ void getConfiguracao()
 void sendReleyState()
 {
   char prefix[100];
-  snprintf(prefix, 100, "?state=%d&id=%d", estadoRele, deviceId);
+  snprintf(prefix, 100, "?state=%d&id=%ld", estadoRele, deviceId);
   //ether.browseUrl(PSTR("/r.php"), prefix, website, my_callback);
   getURL(" /r.php", prefix);
   delay(100);
@@ -242,6 +245,16 @@ void captura()
 {
 
   uint8_t result;
+  uint16_t val0 = 0;
+  uint16_t val1 = 0;
+  uint16_t val2 = 0;
+  uint16_t val3 = 0;
+  uint16_t val4 = 0;
+  uint16_t val5 = 0;
+  uint16_t val6 = 0;
+  uint16_t val7 = 0;
+  char concatenatedStr[100]; 
+  long concatenatedValue = 0;
 
   Serial.begin(velocidadePorta, tipodedados);
 
@@ -255,19 +268,19 @@ void captura()
 
   if (funcao == 1)
   {
-    result = node.readCoils(enderecoId, 1);
+    result = node.readCoils(enderecoId, tamanho);
   }
   else if (funcao == 2)
   {
-    result = node.readDiscreteInputs(enderecoId, 1);
+    result = node.readDiscreteInputs(enderecoId, tamanho);
   }
   else if (funcao == 3)
   {
-    result = node.readHoldingRegisters(enderecoId, 1);
+    result = node.readHoldingRegisters(enderecoId, tamanho);
   }
   else if (funcao == 4)
   {
-    result = node.readInputRegisters(enderecoId, 1);
+    result = node.readInputRegisters(enderecoId, tamanho);
   }
   else if (funcao == 5) 
   {
@@ -294,7 +307,28 @@ void captura()
 
   if (result == node.ku8MBSuccess)
   {
-    sendData("1", node.getResponseBuffer(0));
+    if (tamanho >= 1) val0 = node.getResponseBuffer(0);
+    if (tamanho >= 2) val1 = node.getResponseBuffer(1);
+    if (tamanho >= 3) val2 = node.getResponseBuffer(2);
+    if (tamanho >= 4) val3 = node.getResponseBuffer(3);
+    if (tamanho >= 5) val4 = node.getResponseBuffer(4);
+    if (tamanho >= 6) val5 = node.getResponseBuffer(5);
+    if (tamanho >= 7) val6 = node.getResponseBuffer(6);
+    if (tamanho >= 8) val7 = node.getResponseBuffer(7);
+
+    if (tamanho == 1) {
+        snprintf(concatenatedStr, sizeof(concatenatedStr), "%d", val0);
+    } else if (tamanho == 2) {
+        snprintf(concatenatedStr, sizeof(concatenatedStr), "%d%d", val0, val1);
+    } else if (tamanho == 4) {
+        snprintf(concatenatedStr, sizeof(concatenatedStr), "%d%d%d%d", val0, val1, val2, val3);
+    } else if (tamanho == 8) {
+        snprintf(concatenatedStr, sizeof(concatenatedStr), "%d%d%d%d%d%d%d%d", val0, val1, val2, val3, val4, val5, val6, val7);
+    }
+
+    concatenatedValue = atol(concatenatedStr);
+
+    sendData("1", concatenatedValue);
   }
   else
   {
